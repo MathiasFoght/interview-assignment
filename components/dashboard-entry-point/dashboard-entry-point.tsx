@@ -5,11 +5,15 @@ import type { WeatherDashboardData } from "@/contracts/domain/types";
 import { CurrentWeatherCard } from "@/components/cards/current-weather-card/current-weather-card";
 import { SummaryCard } from "@/components/cards/summary-card/summary-card";
 import { ForecastList } from "@/components/cards/forecast-list/forecast-list";
-import { PrecipitationChart } from "@/components/cards/precipitation-chart/precipitation-chart";
+import dynamic from "next/dynamic";
 import { AlertCard } from "@/components/cards/alert-card/alert-card";
 import { OfflineBanner } from "@/components/feedback/offline-banner/offline-banner";
 import { useRouter } from "next/navigation";
 import styles from "./dashboard-entry-point.module.css";
+
+const PrecipitationChart = dynamic(() =>
+    import("@/components/cards/precipitation-chart/precipitation-chart").then((mod) => mod.PrecipitationChart)
+);
 
 type Props = {
   data: WeatherDashboardData;
