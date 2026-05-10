@@ -17,7 +17,7 @@ npm run dev
 
 Open [http://localhost:3000](http://localhost:3000).
 
-**Production:** [your-deployment-url.vercel.app](https://interview-assignment-lovat.vercel.app/)
+**Production:** [https://interview-assignment-lovat.vercel.app/](https://interview-assignment-lovat.vercel.app/)
 
 ### Environment variables
 
