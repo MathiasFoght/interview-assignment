@@ -1,36 +1,65 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# Better Weather
 
-## Getting Started
+A weather dashboard built with Next.js 16 and the OpenWeatherMap One Call 3.0 API. Search any city to see current conditions, a 7-day forecast, hourly precipitation, and active weather alerts.
 
-First, run the development server:
+## Setup
+
+**Prerequisites:** Node.js 20+, an [OpenWeatherMap API key](https://openweathermap.org/api/one-call-3) with One Call 3.0 enabled.
 
 ```bash
+git clone <repo-url>
+cd interview-assignment
+npm install
+cp .env.example .env.local
+# Add your API key to .env.local
 npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+Open [http://localhost:3000](http://localhost:3000).
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+**Production:** [your-deployment-url.vercel.app](https://your-deployment-url.vercel.app)
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+### Environment variables
 
-## Learn More
+| Variable | Description |
+|----------|-------------|
+| `OPENWEATHER_API_KEY` | OpenWeatherMap API key |
 
-To learn more about Next.js, take a look at the following resources:
+---
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+## Assumptions & trade-offs
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+### API vs. domain contracts
+I chose to keep the raw OpenWeatherMap types isolated in `lib/helpers/normalize.ts`. The rest of the app uses the app’s own domain types, so the application itself doesn’t need to know about OWM’s data structure. The idea is that if I later want to switch to a different weather provider, I primarily need to change the normalization layer rather than the rest of the app.
 
-## Deploy on Vercel
+Trade-off: This adds more upfront structure than necessary for a single provider, but the architecture makes it clear where the external API dependency actually lives.
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+### Mock-data fallback instead of an error page
+If the OWM API fails to deliver data, the app renders a complete UI with mock data, an error banner as feedback to the user, and a retry button — instead of a blank error page. This keeps the interface usable during data issues and gives the user a clear action to take.
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+Trade-off: The displayed data is not real, which can be confusing from a user’s perspective. The error banner is therefore shown prominently and remains visible until the issue is resolved.
+
+### Modular architecture with clear layer boundaries
+The project is structured into distinct layers: API integration (`lib/owm/`) → normalization (`lib/helpers/`) → domain contracts (`contracts/`) → UI components (`components/`). Each layer has a single responsibility, which promotes separation of concerns and makes it easy to understand where in the codebase changes should be made.
+
+Trade-off: More structure than strictly necessary for a project of this size, but it produces a codebase that is easy to navigate where changes in one layer don’t bleed uncontrollably into others.
+
+### Data fetching and caching strategy
+Data fetching happens server-side to optimize performance and SEO. Each layer is cached independently with a lifetime that matches the nature of the data: coordinates never change (`cacheLife("max")`), weather data updates continuously (`cacheLife("hours")`). A central `owmFetch` layer handles the primary fetch logic across all calls.
+
+Trade-off: Server-side data fetching can lead to longer initial loads compared to client-side fetching, but it provides better SEO and performance, especially on slower devices.
+
+---
+
+## What I would improve with more time
+
+- **Tests** — unit tests and integration tests
+- **Temperature unit toggle** — °C/°F stored in a cookie so the preference persists across sessions
+- **Geolocation** — an explicit "Use my location" button
+- **Weather chatbot** — a conversational interface powered by the OpenAI/Gemini API where users can ask NLP questions like "should I bike or drive to work today?"
+- **Favourite cities** — save a handful of cities in localStorage and switch between them instantly without re-searching
+---
+
+## Time spent
+
+17 hours approx.
