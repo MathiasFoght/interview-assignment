@@ -1,0 +1,30 @@
+.wrapper {
+  max-width: var(--dashboard-max-width);
+  margin: 0 auto;
+  min-height: 100dvh;
+  display: flex;
+  flex-direction: column;
+  padding: var(--spacing-page-y) var(--spacing-page-x);
+}
+
+.main {
+  flex: 1;
+}
+
+@media (max-width: 768px) {
+  .wrapper {
+    padding: 2rem 1.25rem;
+  }
+}
+
+@media (max-width: 600px) {
+  .wrapper {
+    padding: 1.5rem 1rem;
+  }
+}
+
+@media (max-width: 480px) {
+  .wrapper {
+    padding: 1.25rem 0.75rem;
+  }
+}
