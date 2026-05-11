@@ -1,52 +1,56 @@
+import { z } from "zod";
 import type { WeatherDashboardData, HourlyPrecipitation, WeatherAlert } from "@/contracts/domain/types";
 import { mapWeatherCode } from "@/lib/weather-codes";
 import { getTimeOfDay } from "@/lib/helpers/time-of-day";
 
-export type OWMWeatherEntry = {
-  id: number;
-}
+const OWMWeatherEntrySchema = z.object({ id: z.number() });
 
-export type OWMCurrent = {
-  temp: number;
-  feels_like: number;
-  humidity: number;
-  wind_speed: number;
-  clouds: number;
-  weather: OWMWeatherEntry[];
-}
+const OWMCurrentSchema = z.object({
+  temp: z.number(),
+  feels_like: z.number(),
+  humidity: z.number(),
+  wind_speed: z.number(),
+  clouds: z.number(),
+  weather: z.array(OWMWeatherEntrySchema),
+});
 
-export type OWMDaily = {
-  dt: number;
-  temp: { min: number; max: number };
-  humidity: number;
-  wind_speed: number;
-  pop: number;
-  weather: OWMWeatherEntry[];
-  summary?: string;
-}
+const OWMDailySchema = z.object({
+  dt: z.number(),
+  temp: z.object({ min: z.number(), max: z.number() }),
+  humidity: z.number(),
+  wind_speed: z.number(),
+  pop: z.number(),
+  weather: z.array(OWMWeatherEntrySchema),
+  summary: z.string().optional(),
+});
 
-export type OWMHourly = {
-  dt: number;
-  pop: number;
-  rain?: { "1h": number };
-  snow?: { "1h": number };
-}
+const OWMHourlySchema = z.object({
+  dt: z.number(),
+  pop: z.number(),
+  rain: z.object({ "1h": z.number() }).optional(),
+  snow: z.object({ "1h": z.number() }).optional(),
+});
 
-export type OWMAlert = {
-  sender_name: string;
-  event: string;
-  start: number;
-  end: number;
-  description: string;
-}
+const OWMAlertSchema = z.object({
+  sender_name: z.string(),
+  event: z.string(),
+  start: z.number(),
+  end: z.number(),
+  description: z.string(),
+});
 
-export type OWMResponse = {
-  current: OWMCurrent;
-  daily: OWMDaily[];
-  hourly: OWMHourly[];
-  alerts?: OWMAlert[];
-  timezone_offset: number;
-}
+export const OWMResponseSchema = z.object({
+  current: OWMCurrentSchema,
+  daily: z.array(OWMDailySchema),
+  hourly: z.array(OWMHourlySchema),
+  alerts: z.array(OWMAlertSchema).optional(),
+  timezone_offset: z.number(),
+});
+
+export type OWMResponse = z.infer<typeof OWMResponseSchema>;
+
+type OWMHourly = z.infer<typeof OWMHourlySchema>;
+type OWMDaily = z.infer<typeof OWMDailySchema>;
 
 export function normalizeHourly(hourly: OWMHourly[], timezoneOffset: number): HourlyPrecipitation[] {
   return hourly.slice(0, 24).map((h) => ({
@@ -76,7 +80,7 @@ export function normalize(data: OWMResponse, cityName: string): WeatherDashboard
       windSpeed: Math.round(current.wind_speed * 3.6),
       cloudiness: current.clouds,
     },
-    forecast: daily.slice(1, 8).map((day: OWMDaily) => {
+    forecast: daily.slice(1, 8).map((day) => {
       const dayCond = day.weather[0];
       return {
         date: new Date(day.dt * 1000).toISOString().split("T")[0],
