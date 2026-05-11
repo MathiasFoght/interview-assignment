@@ -11,7 +11,7 @@ import { owmFetch } from "@/lib/owm/owm-fetch";
 
 export async function fetchWeather(city: string = LOCATION.name): Promise<WeatherDashboardData> {
   "use cache";
-  cacheLife("hours");
+  cacheLife("minutes");
 
   const location = await geocodeCity(city);
 
